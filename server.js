@@ -1,61 +1,38 @@
 import * as serverBuild from 'virtual:react-router/server-build';
-import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
-import {createHydrogenRouterContext} from '~/lib/context';
+import {createRequestHandler} from '@shopify/hydrogen';
 
 /**
- * Export a fetch handler in module format.
+ * Vercel-compatible server handler
  */
-export default {
-  /**
-   * @param {Request} request
-   * @param {Env} env
-   * @param {ExecutionContext} executionContext
-   * @return {Promise<Response>}
-   */
-  async fetch(request, env, executionContext) {
-    try {
-      const hydrogenContext = await createHydrogenRouterContext(
-        request,
-        env,
-        executionContext,
-      );
+export default async function handler(req, res) {
+  try {
+    const handleRequest = createRequestHandler({
+      build: serverBuild,
+      mode: process.env.NODE_ENV,
+      getLoadContext: () => ({}),
+    });
 
-      /**
-       * Create a Hydrogen request handler that internally
-       * delegates to React Router for routing and rendering.
-       */
-      const handleRequest = createRequestHandler({
-        build: serverBuild,
-        mode: process.env.NODE_ENV,
-        getLoadContext: () => hydrogenContext,
-      });
+    const request = new Request(`https://${req.headers.host}${req.url}`, {
+      method: req.method,
+      headers: req.headers,
+      body: req.method !== 'GET' && req.method !== 'HEAD' ? req : null,
+    });
 
-      const response = await handleRequest(request);
+    const response = await handleRequest(request);
 
-      if (hydrogenContext.session.isPending) {
-        response.headers.set(
-          'Set-Cookie',
-          await hydrogenContext.session.commit(),
-        );
-      }
+    // Convert Response → Node response
+    res.statusCode = response.status;
 
-      if (response.status === 404) {
-        /**
-         * Check for redirects only when there's a 404 from the app.
-         * If the redirect doesn't exist, then `storefrontRedirect`
-         * will pass through the 404 response.
-         */
-        return storefrontRedirect({
-          request,
-          response,
-          storefront: hydrogenContext.storefront,
-        });
-      }
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
 
-      return response;
-    } catch (error) {
-      console.error(error);
-      return new Response('An unexpected error occurred', {status: 500});
-    }
-  },
-};
+    const body = await response.text();
+    res.end(body);
+
+  } catch (error) {
+    console.error(error);
+    res.statusCode = 500;
+    res.end('Internal Server Error');
+  }
+}
