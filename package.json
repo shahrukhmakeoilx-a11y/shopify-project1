@@ -4,15 +4,18 @@
   "sideEffects": false,
   "version": "2026.1.2",
   "type": "module",
+
   "scripts": {
     "build": "shopify hydrogen build --codegen",
-  "dev": "shopify hydrogen dev --codegen",
-  "preview": "shopify hydrogen preview --build",
-  "start": "node server.js",
-  "lint": "eslint --no-error-on-unmatched-pattern .",
-  "codegen": "shopify hydrogen codegen && react-router typegen"
+    "dev": "shopify hydrogen dev --codegen",
+    "preview": "shopify hydrogen preview --build",
+    "start": "node server.js",
+    "lint": "eslint --no-error-on-unmatched-pattern .",
+    "codegen": "shopify hydrogen codegen && react-router typegen"
   },
+
   "prettier": "@shopify/prettier-config",
+
   "dependencies": {
     "@shopify/hydrogen": "2026.1.2",
     "bootstrap": "^5.3.8",
@@ -25,6 +28,7 @@
     "react-router-dom": "7.12.0",
     "tailwindcss": "^4.1.6"
   },
+
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
     "@eslint/eslintrc": "^3.2.0",
@@ -59,12 +63,12 @@
     "vite": "^6.2.4",
     "vite-tsconfig-paths": "^4.3.1"
   },
+
   "engines": {
     "node": "^22 || ^24"
   },
+
   "browserslist": [
     "defaults"
   ]
-
-  
 }
